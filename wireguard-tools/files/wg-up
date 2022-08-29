@@ -29,8 +29,11 @@ iptables -t mangle -I PREROUTING -i wg0 -j MARK --set-xmark 0x01/0x7
 iptables -t nat -I POSTROUTING -s $(nvram get lan_ipaddr)/24 -o wg0 -j MASQUERADE
 
 if [ "$wgdns" != "" ] && [ ! -f /tmp/resolv.dnsmasq_backup ]; then {
-        cp /tmp/resolv.dnsmasq /tmp/resolv.dnsmasq_backup 2>/dev/null
-                echo "server=$wgdns" > /tmp/resolv.dnsmasq
-                service restart_dnsmasq
-        }
+	mv /tmp/resolv.dnsmasq /tmp/resolv.dnsmasq_backup 2>/dev/null
+	touch /tmp/resolv.dnsmasq
+	for i in $(echo $wgdns | tr ',' '\n')
+		do
+			echo "server=$i" >> /tmp/resolv.dnsmasq
+		done
+	service restart_dnsmasq
 fi
